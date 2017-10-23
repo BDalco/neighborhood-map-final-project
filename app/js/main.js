@@ -1,5 +1,3 @@
-'use strict';
-
 // These are the bar/restaurant listings that will be shown to the user.
 var data = {
 	locations: [
@@ -17,6 +15,9 @@ var stringHasText = function (string, startsWith) {
 		return false;
 	return (string.indexOf(startsWith) !== -1);
 };
+
+// Declaring global variables now to satisfy strict mode
+var map;
 
 //  View Model
 var ViewModel = function () {
@@ -194,7 +195,7 @@ var mapHandler = {
             });
         }
     },
-    init: function () {
+    init: function() {
         var self = this;
         self.model = new ViewModel();
         ko.options.deferUpdates = true;
@@ -232,8 +233,7 @@ var mapHandler = {
 
         });
 
-		self.map.fitBounds(self.bounds);
+        self.map.fitBounds(self.bounds);
 
     }
-
 };
