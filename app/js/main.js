@@ -123,7 +123,11 @@ var mapHandler = {
             }
             data.locations.forEach(function (place) {
                 if (marker.title == place.title) {
-                    innerHTML += '<br>' + '<strong>Foursquare Rating:</strong> ' + place.foursquare_rating + '<br>'
+                    innerHTML += 
+                        '<br>' + 
+                        '<strong>Foursquare Rating:</strong> ' + 
+                        place.foursquare_rating + 
+                        '<br>';
                 }
             });
             if (place.website) {
