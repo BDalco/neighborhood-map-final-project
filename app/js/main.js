@@ -1,14 +1,4 @@
-// These are the bar/restaurant listings that will be shown to the user.
-var data = {
-	locations: [
-		{title: 'Emporium Logan Square', location: {lat: 41.9242, lng: -87.6993}, place_id:'ChIJvxPg9mLND4gRZQkGFIME1b0'},
-		{title: 'Logan Arcade', location: {lat: 41.9243734, lng: -87.6916102}, place_id:'ChIJPUOMoprSD4gRf8R-f-It5HA'},
-		{title: 'Logan Hardware Records', location: {lat: 41.9250107, lng: -87.6936709}, place_id:'ChIJ9z8JoprSD4gRvkWDQVx0WeU'},
-		{title: 'Revolution Brewing', location: {lat: 41.9235734, lng: -87.6990944}, place_id:'ChIJsxosZWLND4gRH7vbeVKbuLg'},
-		{title: 'Slippery Slope', location: {lat: 41.9239505, lng: -87.7001477}, place_id:'ChIJdy7U9WLND4gRlsn7Bwe_NI8'},
-		{title: 'WhirlyBall Chicago', location: {lat: 41.9213616, lng: -87.6801861}, place_id:'ChIJ36q9du3SD4gRc_oBbj74Fm4'}
-	]
-};
+
 var stringHasText = function (string, startsWith) {
 	string = string || "";
 	if (startsWith.length > string.length)
@@ -16,8 +6,11 @@ var stringHasText = function (string, startsWith) {
 	return (string.indexOf(startsWith) !== -1);
 };
 
-// Declaring global variables now to satisfy strict mode
 var map;
+var clientID = 'UUGLJUVJDKXWWANBKH1MEQFXPU4NR23AWMHCHORPC3K2THZI';
+var clientSecret = 'ZSKC3L3IBME0TIQ2NDTOPRTWK0ZA4HENFBOTD0XJ3VVDLYPT';
+var foursquareVersion = '20171023';
+
 
 //  View Model
 var ViewModel = function () {
@@ -55,10 +48,28 @@ var mapHandler = {
 	previousMarker:null,
 	service: null,
 
+    toggleBounce: function (marker) {
+        if (marker.getAnimation() !== null) {
+            marker.setAnimation(null);
+        } else {
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+        }
+    },
+    
+    mouseEffect: function (bars) {
+        for (var i = 0; i < mapHandler.markers.length; i++) {
+            if (bars.title === (mapHandler.markers[i].title)) {
+                //animate it
+                mapHandler.toggleBounce(mapHandler.markers[i]);
+            }
+        }
+    },
+
     // load information about the bar
     loadInfo: function (place, status, marker, infowindow) {
         if (mapHandler.previousMarker !== null){
             mapHandler.previousMarker.setIcon(null);
+            mapHandler.previousMarker.setAnimation(null);
         }
 
         // Adds the information to the infoWindow
@@ -110,6 +121,11 @@ var mapHandler = {
                     '<br>' +'<strong>Rating</strong>: NONE' +
                     '<br>';
             }
+            data.locations.forEach(function (place) {
+                if (marker.title == place.title) {
+                    innerHTML += '<br>' + '<strong>Foursquare Rating:</strong> ' + place.foursquare_rating + '<br>'
+                }
+            });
             if (place.website) {
                 innerHTML +=
                     '<br>' +
@@ -130,7 +146,6 @@ var mapHandler = {
 
 
         }
-
         infowindow.setContent(innerHTML);
         infowindow.open(self.map, marker);
         mapHandler.previousMarker = marker;    
@@ -162,13 +177,19 @@ var mapHandler = {
                 if (bars === "All bars") {
                     reference.infoWindow.close();
                     reference.markers[i].setVisible(true);
+                    reference.markers[i].setAnimation(null);
                     reference.markers[i].setIcon(null);
                     boundsFocus.extend(reference.markers[i].position);
                 }
                 else {
                     if (bars.title === (reference.markers[i].title)) {
+                        reference.markers[i].setVisible(true);
                         boundsFocus.extend(reference.markers[i].position);
+                        reference.toggleBounce(reference.markers[i]);
                         reference.populateInfoWindow(reference.markers[i], reference.infoWindow);
+                    }
+                     else {
+                        reference.markers[i].setVisible(false);
                     }
                 }
             }
@@ -206,7 +227,7 @@ var mapHandler = {
         // Starts the Map
         self.map = new google.maps.Map(document.getElementById('map'), {
             center: { lat: 41.9243734, lng: -87.6916102 },
-            zoom: 1,
+            zoom: 12,
             mapTypeControl: false
         });
         self.service = new google.maps.places.PlacesService(self.map);
@@ -222,6 +243,16 @@ var mapHandler = {
                 animation: google.maps.Animation.DROP,
                 place_id: element.place_id
             });
+            
+            $.ajax({
+                url: "https://api.foursquare.com/v2/venues/" + element.foursquare_id + "?client_id=" + clientID + "&client_secret=" + clientSecret + "&v=" + foursquareVersion,
+                ratingResult: i
+            }).done(function (result) {
+                data.fourSquareRating(result, true, this.ratingResult);
+            }).fail(function () {
+                data.fourSquareRating(null, false, this.ratingResult);
+            });
+
             i += 1;
 
             self.markers.push(marker);
@@ -237,3 +268,7 @@ var mapHandler = {
 
     }
 };
+
+function errorHandling() {
+    alert("I am sorry, Google Maps has failed to load. Please check to be sure you are connected to the internet and try again.");
+}
