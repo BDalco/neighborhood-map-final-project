@@ -192,9 +192,6 @@ var mapHandler = {
                         reference.toggleBounce(reference.markers[i]);
                         reference.populateInfoWindow(reference.markers[i], reference.infoWindow);
                     }
-                     else {
-                        reference.markers[i].setVisible(false);
-                    }
                 }
             }
         }
@@ -262,7 +259,7 @@ var mapHandler = {
             self.markers.push(marker);
             marker.addListener('click', function () {
                 self.populateInfoWindow(this, self.infoWindow);
-
+                self.toggleBounce(marker);
             });
             self.bounds.extend(marker.position);
 
